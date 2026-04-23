@@ -2,529 +2,1130 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Монополия АТСТ - Путь к диплому</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Монополия АТСТ - Ultimate Edition</title>
+    <style>
+        :root {
+            --board-bg: #cde6d0;
+            --center-bg: #fafafa;
+            --p1-color: #e74c3c;
+            --p2-color: #3498db;
+            --p3-color: #f1c40f;
+            --p4-color: #9b59b6;
+            --card-chance: #f39c12;
+            --card-tax: #c0392b;
+            --house-color: #27ae60;
+            --hotel-color: #c0392b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2c3e50;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        #game-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            width: 100%;
+            height: 95vh;
+        }
+
+        /* Board Styles */
+        #board {
+            display: grid;
+            grid-template-columns: repeat(11, 1fr);
+            grid-template-rows: repeat(11, 1fr);
+            gap: 2px;
+            background-color: #34495e;
+            border: 5px solid #ecf0f1;
+            border-radius: 8px;
+            flex-grow: 1;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .cell {
+            background-color: var(--board-bg);
+            border: 1px solid #bdc3c7;
+            display: flex;
+            flex-direction: column;
+            font-size: 10px;
+            text-align: center;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        .cell-header {
+            height: 20%;
+            width: 100%;
+            border-bottom: 1px solid rgba(0,0,0,0.2);
+        }
+        
+        /* Orientation fixes for sides */
+        .cell.left .cell-header, .cell.right .cell-header {
+            height: 100%;
+            width: 20%;
+            border-bottom: none;
+            border-right: 1px solid rgba(0,0,0,0.2);
+            float: left;
+        }
+        .cell.right .cell-header {
+            border-right: none;
+            border-left: 1px solid rgba(0,0,0,0.2);
+            float: right;
+        }
+
+        .cell-name {
+            padding: 2px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            flex-grow: 1;
+        }
+
+        .cell-price {
+            padding-bottom: 2px;
+            font-size: 9px;
+        }
+
+        .center-square {
+            grid-column: 2 / 11;
+            grid-row: 2 / 11;
+            background-color: var(--center-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Players */
+        .player-token {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            position: absolute;
+            transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* Houses & Hotels */
+        .building-indicator {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            display: flex;
+            gap: 2px;
+        }
+        .house-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--house-color);
+            border-radius: 50%;
+            border: 1px solid white;
+        }
+        .hotel-dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--hotel-color);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            border: 1px solid white;
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: 300px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .panel {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        h2, h3 { margin-top: 0; color: #2c3e50; }
+
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 5px;
+            font-weight: bold;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        .btn:hover { background-color: #2980b9; }
+        .btn:active { transform: scale(0.98); }
+        .btn-danger { background-color: #e74c3c; }
+        .btn-danger:hover { background-color: #c0392b; }
+        .btn-success { background-color: #27ae60; }
+        .btn-success:hover { background-color: #219150; }
+        .btn-warning { background-color: #f39c12; }
+        .btn-warning:hover { background-color: #d35400; }
+
+        .log-entry {
+            font-size: 12px;
+            border-bottom: 1px solid #eee;
+            padding: 4px 0;
+        }
+        .log-entry:last-child { border-bottom: none; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(3px);
+        }
+        .modal {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            width: 400px;
+            max-width: 90%;
+            text-align: center;
+            animation: popIn 0.3s ease-out;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .card-display {
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2em;
+            border: 2px dashed rgba(255,255,255,0.5);
+        }
+        .card-chance { background-color: var(--card-chance); }
+        .card-tax { background-color: var(--card-tax); }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            #game-container { flex-direction: column; height: auto; overflow-y: auto; }
+            #board { width: 100%; aspect-ratio: 1; }
+            #sidebar { width: 100%; }
+            .cell { font-size: 8px; }
+            .player-token { width: 15px; height: 15px; }
+        }
+
+        /* Animations */
+        @keyframes tokenMove {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes cardFlip {
+            0% { transform: rotateY(0); opacity: 0; }
+            50% { transform: rotateY(90deg); opacity: 0.5; }
+            100% { transform: rotateY(180deg); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(243, 156, 18, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); }
+        }
+
+        .token-moving {
+            animation: tokenMove 0.3s ease-in-out;
+        }
+
+        .card-flip {
+            animation: cardFlip 0.6s ease-in-out;
+            transform-style: preserve-3d;
+        }
+
+        .pulse-effect {
+            animation: pulse 1s infinite;
+        }
+
+        /* House/Hotel indicators */
+        .house-indicator {
+            background-color: var(--house-color);
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            display: inline-block;
+            margin: 1px;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .hotel-indicator {
+            background-color: var(--hotel-color);
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            display: inline-block;
+            margin: 1px;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* Trade modal */
+        .trade-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            z-index: 1000;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .trade-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+        }
+
+        /* Auction styles */
+        .auction-panel {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .save-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .save-notification.show {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body>
-    <div class="monopoly-container">
-        <!-- Логотип техникума -->
-        <div class="college-branding">
-            <div class="college-logo">
-                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23667eea' width='100' height='100' rx='10'/%3E%3Ctext fill='white' font-size='60' x='50' y='65' text-anchor='middle'%3E🎓%3C/text%3E%3C/svg%3E" alt="АТСТ">
+
+<div id="game-container">
+    <div id="board">
+        <!-- Cells generated by JS -->
+        <div class="center-square">
+            <h1>МОНОПОЛИЯ АТСТ</h1>
+            <div id="dice-area" style="font-size: 40px; margin: 20px;">🎲 <span id="dice-val">-</span></div>
+            <div id="turn-indicator" style="font-weight: bold; margin-bottom: 10px;">Ход: Игрок 1</div>
+            <button class="btn btn-success" id="roll-btn" onclick="game.rollDice()">Бросить кубики</button>
+            <div style="margin-top: 20px; font-size: 12px; color: #7f8c8d;">
+                Автосохранение включено
             </div>
-            <div class="college-info">
-                <h1>АТСТ</h1>
-                <p>Ангарский техникум строительных технологий</p>
-            </div>
+            <button class="btn btn-warning" style="margin-top:10px;" onclick="game.saveGame()">Сохранить сейчас</button>
+            <button class="btn btn-danger" style="margin-top:5px;" onclick="game.resetGame()">Новая игра</button>
         </div>
-
-        <!-- Шапка с игроками -->
-        <div class="game-header">
-            <div class="players-area" id="playersArea">
-                <!-- Игроки будут здесь -->
-            </div>
-            <div class="game-controls">
-                <a class="btn-menu" href="menu.html">← Главное меню</a>
-                <button class="btn-roll" onclick="rollDice()">
-                    <span class="dice-icon">🎲</span>
-                    Бросить кубики
-                </button>
-                <button class="btn-end" onclick="endTurn()">
-                    Завершить ход
-                </button>
-                <button class="btn-stats" onclick="showGameStats()">
-                    📊 Статистика
-                </button>
-                <button class="btn-log" onclick="openJournalModal()">
-                    📜 Журнал
-                </button>
-                <button class="btn-save" onclick="saveGame()">
-                    💾 Сохранить
-                </button>
-            </div>
-        </div>
-
-        <!-- Игровое поле -->
-        <div class="board-wrapper">
-            <table class="monopoly-board">
-                <!-- Верхний ряд -->
-                <tr>
-                    <td class="corner-cell" id="space-20">
-                        <div class="corner-content">
-                            <div class="corner-icon">👔</div>
-                            <div>К директору!</div>
-                        </div>
-                    </td>
-                    <td class="property-cell blue-group" id="space-21" data-price="300" data-rent="44" data-group="blue">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Конференц-зал</div>
-                        <div class="property-price">300₽</div>
-                        <div class="property-owner" id="owner-21"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="property-cell blue-group" id="space-22" data-price="300" data-rent="46" data-group="blue">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Лингафонный кабинет</div>
-                        <div class="property-price">300₽</div>
-                        <div class="property-owner" id="owner-22"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="property-cell blue-group" id="space-23" data-price="320" data-rent="48" data-group="blue">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Лаборатория электротехники</div>
-                        <div class="property-price">320₽</div>
-                        <div class="property-owner" id="owner-23"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="property-cell blue-group" id="space-24" data-price="320" data-rent="50" data-group="blue">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Лаборатория физики</div>
-                        <div class="property-price">320₽</div>
-                        <div class="property-owner" id="owner-24"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="property-cell blue-group" id="space-25" data-price="350" data-rent="52" data-group="blue">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Столярная мастерская</div>
-                        <div class="property-price">350₽</div>
-                        <div class="property-owner" id="owner-25"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="chance-cell" id="space-26">
-                        <div class="chance-card-visual">
-                            <div class="chance-card-inner">
-                                <div class="chance-card-front">
-                                    <div class="chance-title">ШАНС</div>
-                                    <div class="chance-icon">?</div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="property-cell blue-group" id="space-27" data-price="350" data-rent="55" data-group="blue">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Читальный зал</div>
-                        <div class="property-price">350₽</div>
-                        <div class="property-owner" id="owner-27"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="property-cell blue-group" id="space-28" data-price="400" data-rent="60" data-group="blue">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Библиотека</div>
-                        <div class="property-price">400₽</div>
-                        <div class="property-owner" id="owner-28"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="corner-cell start-cell" id="space-0">
-                        <div class="corner-icon">🎓</div>
-                        <div class="corner-text">ГЛАВНЫЙ ВХОД<br>АТСТ</div>
-                        <div class="corner-subtext">+200₽</div>
-                        <div class="college-badge">АТСТ</div>
-                    </td>
-                </tr>
-
-                <!-- Левая колонка и центр -->
-                <tr>
-                    <td class="property-cell yellow-group" id="space-19" data-price="280" data-rent="40" data-group="yellow">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Актовый зал</div>
-                        <div class="property-price">280₽</div>
-                        <div class="property-owner" id="owner-19"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td colspan="8" rowspan="8" class="board-center">
-                        <div class="center-content">
-                            <div class="center-top-info">
-                                <div class="info-chip">Проход круга: +200₽</div>
-                                <div class="info-chip">3 дубля: в кабинет к завучу</div>
-                                <div class="info-chip">Цель: остаться последним в игре</div>
-                            </div>
-
-                            <div class="college-emblem">
-                                <div class="emblem-circle">
-                                    <div class="emblem-text">АТСТ</div>
-                                    <div class="emblem-year">1954</div>
-                                </div>
-                            </div>
-                            
-                            <div class="dice-container" id="diceContainer">
-                                <div class="dice-3d" id="dice1">
-                                    <div class="dice-face dice-face-1">⚀</div>
-                                    <div class="dice-face dice-face-2">⚁</div>
-                                    <div class="dice-face dice-face-3">⚂</div>
-                                    <div class="dice-face dice-face-4">⚃</div>
-                                    <div class="dice-face dice-face-5">⚄</div>
-                                    <div class="dice-face dice-face-6">⚅</div>
-                                </div>
-                                <div class="dice-3d" id="dice2">
-                                    <div class="dice-face dice-face-1">⚀</div>
-                                    <div class="dice-face dice-face-2">⚁</div>
-                                    <div class="dice-face dice-face-3">⚂</div>
-                                    <div class="dice-face dice-face-4">⚃</div>
-                                    <div class="dice-face dice-face-5">⚄</div>
-                                    <div class="dice-face dice-face-6">⚅</div>
-                                </div>
-                            </div>
-                            
-                            <div class="game-message" id="gameMessage">
-                                Добро пожаловать в техникум АТСТ!
-                            </div>
-                            <div class="turn-indicator" id="turnIndicator">
-                                Ожидание начала игры...
-                            </div>
-
-                            <div class="center-bottom-rules">
-                                <div class="rule-card">Покупайте свойства и собирайте ренту</div>
-                                <div class="rule-card">Карточки могут как помочь, так и наказать</div>
-                                <div class="rule-card">Следите за балансом и риском банкротства</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="property-cell red-group" id="space-1" data-price="60" data-rent="10" data-group="red">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Каб. Экономики</div>
-                        <div class="property-price">60₽</div>
-                        <div class="property-owner" id="owner-1"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td class="property-cell yellow-group" id="space-18" data-price="260" data-rent="38" data-group="yellow">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Студенческое кафе</div>
-                        <div class="property-price">260₽</div>
-                        <div class="property-owner" id="owner-18"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="property-cell red-group" id="space-2" data-price="60" data-rent="12" data-group="red">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Каб. Английского</div>
-                        <div class="property-price">60₽</div>
-                        <div class="property-owner" id="owner-2"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td class="scholarship-cell" id="space-17">
-                        <div class="special-name">
-                            <div class="special-icon">💰</div>
-                            <div>Стипендия</div>
-                        </div>
-                    </td>
-                    <td class="tax-cell" id="space-3">
-                        <div class="tax-name">Пожертвование<br>техникуму</div>
-                        <div class="tax-amount">-200₽</div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td class="property-cell yellow-group" id="space-16" data-price="240" data-rent="36" data-group="yellow">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Бассейн</div>
-                        <div class="property-price">240₽</div>
-                        <div class="property-owner" id="owner-16"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="corner-cell bonus-cell" id="space-4">
-                        <div class="corner-content">
-                            <div class="corner-icon">🔨</div>
-                            <div>Практика</div>
-                            <div class="bonus-amount">+200₽</div>
-                        </div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td class="property-cell purple-group" id="space-15" data-price="220" data-rent="32" data-group="purple">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Тренажерный зал</div>
-                        <div class="property-price">220₽</div>
-                        <div class="property-owner" id="owner-15"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="property-cell orange-group" id="space-39" data-price="180" data-rent="26" data-group="orange">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Каб. ОБЖ</div>
-                        <div class="property-price">180₽</div>
-                        <div class="property-owner" id="owner-39"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td class="property-cell purple-group" id="space-14" data-price="220" data-rent="34" data-group="purple">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Спортивный зал</div>
-                        <div class="property-price">220₽</div>
-                        <div class="property-owner" id="owner-14"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="chance-cell" id="space-38">
-                        <div class="chance-card-visual">
-                            <div class="chance-card-inner">
-                                <div class="chance-card-front">
-                                    <div class="chance-title">ШАНС</div>
-                                    <div class="chance-icon">?</div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td class="property-cell green-group" id="space-13" data-price="200" data-rent="30" data-group="green">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Сварочная мастерская</div>
-                        <div class="property-price">200₽</div>
-                        <div class="property-owner" id="owner-13"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="property-cell green-group" id="space-37" data-price="200" data-rent="30" data-group="green">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Лаборатория химии</div>
-                        <div class="property-price">200₽</div>
-                        <div class="property-owner" id="owner-37"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td class="property-cell orange-group" id="space-12" data-price="180" data-rent="28" data-group="orange">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Каб. сметного дела</div>
-                        <div class="property-price">180₽</div>
-                        <div class="property-owner" id="owner-12"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="corner-cell jail-cell" id="space-36">
-                        <div class="corner-content">
-                            <div class="corner-icon">📚</div>
-                            <div class="jail-title">В кабинет</div>
-                            <div class="jail-title">к завучу</div>
-                            <div class="jail-subtitle">Пропустите ход</div>
-                        </div>
-                    </td>
-                </tr>
-
-                <!-- Нижний ряд -->
-                <tr>
-                    <td class="property-cell green-group" id="space-11" data-price="180" data-rent="26" data-group="green">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Компьютерный класс</div>
-                        <div class="property-price">180₽</div>
-                        <div class="property-owner" id="owner-11"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="property-cell green-group" id="space-10" data-price="160" data-rent="24" data-group="green">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Каб. архитектуры</div>
-                        <div class="property-price">160₽</div>
-                        <div class="property-owner" id="owner-10"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="session-cell" id="space-9">
-                        <div class="special-name">
-                            <div class="special-icon">📝</div>
-                            <div>Сессия</div>
-                        </div>
-                    </td>
-                    <td class="property-cell orange-group" id="space-8" data-price="140" data-rent="22" data-group="orange">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Аудитория экономики</div>
-                        <div class="property-price">140₽</div>
-                        <div class="property-owner" id="owner-8"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="property-cell purple-group" id="space-7" data-price="140" data-rent="20" data-group="purple">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Комната отдыха</div>
-                        <div class="property-price">140₽</div>
-                        <div class="property-owner" id="owner-7"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="property-cell yellow-group" id="space-6" data-price="120" data-rent="18" data-group="yellow">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Кредисманский<br>проспект</div>
-                        <div class="property-price">120₽</div>
-                        <div class="property-owner" id="owner-6"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="property-cell red-group" id="space-5" data-price="100" data-rent="16" data-group="red">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Каб. черчения</div>
-                        <div class="property-price">100₽</div>
-                        <div class="property-owner" id="owner-5"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                    <td class="tax-cell" id="space-35">
-                        <div class="tax-name">Взнос за<br>сессию</div>
-                        <div class="tax-amount">-100₽</div>
-                    </td>
-                    <td class="chance-cell" id="space-33">
-                        <div class="chance-card-visual">
-                            <div class="chance-card-inner">
-                                <div class="chance-card-front">
-                                    <div class="chance-title">ШАНС</div>
-                                    <div class="chance-icon">?</div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="property-cell red-group" id="space-34" data-price="110" data-rent="18" data-group="red">
-                        <div class="property-color-bar"></div>
-                        <div class="property-name">Каб. Информатики</div>
-                        <div class="property-price">110₽</div>
-                        <div class="property-owner" id="owner-34"></div>
-                        <div class="property-buildings"></div>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="board-decks">
-            <div class="deck chance-deck">
-                <div class="deck-title">ШАНС</div>
-            </div>
-            <div class="deck scholarship-deck">
-                <div class="deck-title">СТИПЕНДИЯ</div>
-            </div>
-            <div class="deck session-deck">
-                <div class="deck-title">СЕССИЯ</div>
-            </div>
-        </div>
-
     </div>
 
-    <!-- Экран настройки игры -->
-    <div id="setupScreen" class="setup-screen">
-        <div class="setup-panel">
-            <div class="setup-header">
-                <div class="setup-logo">🎓</div>
-                <h1>Монополия АТСТ</h1>
-                <h2>Путь к диплому</h2>
-            </div>
+    <div id="sidebar">
+        <div class="panel">
+            <h3>Статус игроков</h3>
+            <div id="players-stats"></div>
+        </div>
+        <div class="panel">
+            <h3>Действия</h3>
+            <button class="btn" id="buy-btn" onclick="game.buyProperty()" disabled>Купить участок</button>
+            <button class="btn btn-warning" id="auction-btn" onclick="game.startAuction()" disabled>Аукцион</button>
+            <button class="btn" id="trade-btn" onclick="game.openTradeModal()" disabled>Торговля</button>
+            <button class="btn" id="build-btn" onclick="game.openBuildModal()" disabled>Построить дом/отель</button>
+            <button class="btn btn-danger" id="end-turn-btn" onclick="game.endTurn()" disabled>Завершить ход</button>
+        </div>
+        <div class="panel" style="flex-grow: 1; display: flex; flex-direction: column;">
+            <h3>Журнал событий</h3>
+            <div id="game-log" style="overflow-y: auto; flex-grow: 1; font-family: monospace;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div id="modal-overlay" class="modal-overlay">
+    <div class="modal" id="modal-content">
+        <!-- Dynamic Content -->
+    </div>
+</div>
+
+<script>
+/**
+ * AUDIO SYSTEM (Synthesized sounds)
+ */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const playSound = (type) => {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+    
+    if (type === 'roll') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+    } else if (type === 'buy') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.setValueAtTime(600, now + 0.1);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+    } else if (type === 'error') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+    } else if (type === 'win') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.setValueAtTime(500, now + 0.1);
+        osc.frequency.setValueAtTime(600, now + 0.2);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.6);
+        osc.start(now);
+        osc.stop(now + 0.6);
+    }
+};
+
+/**
+ * GAME DATA & CONFIG
+ */
+const BOARD_SIZE = 40;
+const COLORS = {
+    BROWN: '#8d6e63', LIGHTBLUE: '#81d4fa', PINK: '#f48fb1', ORANGE: '#ffcc80',
+    RED: '#ef9a9a', YELLOW: '#fff59d', GREEN: '#a5d6a7', BLUE: '#90caf9'
+};
+
+// Simplified board data for demo (Full 40 would be longer, using a pattern)
+const rawBoardData = [
+    { name: "СТАРТ", type: "corner", price: 0 },
+    { name: "Набережная", type: "property", group: "BROWN", price: 60, rent: 2 },
+    { name: "Шанс", type: "chance" },
+    { name: "Бульвар", type: "property", group: "BROWN", price: 60, rent: 4 },
+    { name: "Налог", type: "tax", amount: 200 },
+    { name: "Вокзал АТСТ", type: "railroad", price: 200, rent: 25 },
+    { name: "Проспект", type: "property", group: "LIGHTBLUE", price: 100, rent: 6 },
+    { name: "Шанс", type: "chance" },
+    { name: "Улица Мира", type: "property", group: "LIGHTBLUE", price: 100, rent: 6 },
+    { name: "Площадь", type: "property", group: "LIGHTBLUE", price: 120, rent: 8 },
+    { name: "ТЮРЬМА", type: "corner" },
+    { name: "Электричество", type: "utility", price: 150 },
+    { name: "Ленина", type: "property", group: "PINK", price: 140, rent: 10 },
+    { name: "Шанс", type: "chance" },
+    { name: "Кирова", type: "property", group: "PINK", price: 140, rent: 10 },
+    { name: "Гагарина", type: "property", group: "PINK", price: 160, rent: 12 },
+    { name: "Парковка", type: "corner" },
+    { name: "Мира", type: "property", group: "ORANGE", price: 180, rent: 14 },
+    { name: "Шанс", type: "chance" },
+    { name: "Советская", type: "property", group: "ORANGE", price: 180, rent: 14 },
+    { name: "Карла Маркса", type: "property", group: "ORANGE", price: 200, rent: 16 },
+    { name: "Полиция", type: "corner" }, // Just going to jail logic
+    { name: "Коммунальная", type: "utility", price: 150 },
+    { name: "Шанс", type: "chance" },
+    { name: "Пушкина", type: "property", group: "RED", price: 220, rent: 18 },
+    { name: "Лермонтова", type: "property", group: "RED", price: 220, rent: 18 },
+    { name: "Вокзал Центр", type: "railroad", price: 200, rent: 25 },
+    { name: "Чехова", type: "property", group: "RED", price: 240, rent: 20 },
+    { name: "Иди в тюрьму", type: "gotojail" },
+    { name: "Гоголя", type: "property", group: "YELLOW", price: 260, rent: 22 },
+    { name: "Некрасова", type: "property", group: "YELLOW", price: 260, rent: 22 },
+    { name: "Шанс", type: "chance" },
+    { name: "Тургенева", type: "property", group: "YELLOW", price: 280, rent: 24 },
+    { name: "Вокзал Восток", type: "railroad", price: 200, rent: 25 },
+    { name: "Шанс", type: "chance" },
+    { name: "Толстого", type: "property", group: "GREEN", price: 300, rent: 26 },
+    { name: "Достоевского", type: "property", group: "GREEN", price: 300, rent: 26 },
+    { name: "Налог", type: "tax", amount: 100 },
+    { name: "Чкалова", type: "property", group: "GREEN", price: 320, rent: 28 },
+    { name: "ФИНИШ", type: "corner" }
+];
+
+class MonopolyGame {
+    constructor() {
+        this.players = [
+            { id: 0, name: "Игрок 1", color: "var(--p1-color)", money: 1500, pos: 0, jailed: false, props: [] },
+            { id: 1, name: "Игрок 2", color: "var(--p2-color)", money: 1500, pos: 0, jailed: false, props: [] },
+            { id: 2, name: "Игрок 3", color: "var(--p3-color)", money: 1500, pos: 0, jailed: false, props: [] },
+            { id: 3, name: "Игрок 4", color: "var(--p4-color)", money: 1500, pos: 0, jailed: false, props: [] }
+        ];
+        this.currentPlayerIdx = 0;
+        this.boardState = JSON.parse(JSON.stringify(rawBoardData)); // Deep copy
+        this.log("Добро пожаловать в Монополию АТСТ!");
+        this.initBoard();
+        this.renderPlayers();
+        this.loadGame();
+        this.updateUI();
+    }
+
+    initBoard() {
+        const boardEl = document.getElementById('board');
+        // Clear existing cells except center
+        Array.from(boardEl.children).forEach(c => {
+            if (!c.classList.contains('center-square')) boardEl.removeChild(c);
+        });
+
+        // Grid positioning logic for 11x11 grid (0-39)
+        // Bottom: 10, 1..9 | Left: 10..2, 0 | Top: 0, 1..9 | Right: 2..10, 10
+        
+        this.boardState.forEach((cell, index) => {
+            const el = document.createElement('div');
+            el.className = 'cell';
+            el.id = `cell-${index}`;
             
-            <div class="form-group">
-                <label for="playerCount">Количество игроков (1-8):</label>
-                <select id="playerCount" onchange="updatePlayerSetup()">
-                    <option value="1">1 игрок</option>
-                    <option value="2" selected>2 игрока</option>
-                    <option value="3">3 игрока</option>
-                    <option value="4">4 игрока</option>
-                    <option value="5">5 игроков</option>
-                    <option value="6">6 игроков</option>
-                    <option value="7">7 игроков</option>
-                    <option value="8">8 игроков</option>
-                </select>
-            </div>
+            // Positioning
+            if (index >= 0 && index <= 10) { // Bottom row
+                el.style.gridRow = 11;
+                el.style.gridColumn = 11 - index;
+                if(index === 0) el.classList.add('corner-big');
+            } else if (index >= 11 && index <= 20) { // Left col
+                el.style.gridRow = 11 - (index - 10);
+                el.style.gridColumn = 1;
+                el.classList.add('left');
+            } else if (index >= 21 && index <= 30) { // Top row
+                el.style.gridRow = 1;
+                el.style.gridColumn = index - 20 + 1;
+            } else if (index >= 31 && index <= 39) { // Right col
+                el.style.gridRow = index - 30 + 1;
+                el.style.gridColumn = 11;
+                el.classList.add('right');
+            }
 
-            <div id="playersSetup">
-                <!-- Динамически генерируемые поля игроков -->
-            </div>
+            // Content
+            let headerColor = '';
+            if (cell.group) headerColor = COLORS[cell.group] || '#ccc';
+            
+            let html = '';
+            if (cell.type === 'property' || cell.type === 'railroad' || cell.type === 'utility') {
+                if (headerColor) {
+                    html += `<div class="cell-header" style="background-color: ${headerColor}"></div>`;
+                }
+                html += `<div class="cell-name">${cell.name}</div>`;
+                if (cell.price) html += `<div class="cell-price">${cell.price}$</div>`;
+                html += `<div class="building-indicator" id="builds-${index}"></div>`;
+            } else {
+                html += `<div class="cell-name" style="height:100%">${cell.name}</div>`;
+            }
+            el.innerHTML = html;
+            boardEl.appendChild(el);
+        });
 
-            <button onclick="startGame()" class="btn-start">Начать игру</button>
-            <button onclick="loadGame()" class="btn-load">📂 Загрузить игру</button>
+        // Create player tokens
+        this.players.forEach(p => {
+            const token = document.createElement('div');
+            token.className = 'player-token';
+            token.id = `token-${p.id}`;
+            token.style.backgroundColor = p.color;
+            boardEl.appendChild(token);
+            this.moveTokenVisual(p.id, 0);
+        });
+    }
+
+    moveTokenVisual(playerId, posIndex) {
+        const cell = document.getElementById(`cell-${posIndex}`);
+        const token = document.getElementById(`token-${playerId}`);
+        const rect = cell.getBoundingClientRect();
+        const boardRect = document.getElementById('board').getBoundingClientRect();
+        
+        // Offset for multiple players on same cell
+        const offset = playerId * 5; 
+        
+        token.style.left = (rect.left - boardRect.left + 5 + offset) + 'px';
+        token.style.top = (rect.top - boardRect.top + 5 + offset) + 'px';
+    }
+
+    rollDice() {
+        const rollBtn = document.getElementById('roll-btn');
+        rollBtn.disabled = true;
+        
+        playSound('roll');
+        let rolls = 0;
+        const interval = setInterval(() => {
+            const d1 = Math.floor(Math.random() * 6) + 1;
+            const d2 = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('dice-val').innerText = `${d1} + ${d2}`;
+            rolls++;
+            if (rolls > 10) {
+                clearInterval(interval);
+                const total = d1 + d2;
+                this.handleMove(total);
+            }
+        }, 50);
+    }
+
+    handleMove(steps) {
+        const player = this.players[this.currentPlayerIdx];
+        
+        if (player.jailed) {
+            if (steps % 2 !== 0) { // Simple jail logic: odd roll gets out
+                player.jailed = false;
+                this.log(`${player.name} выходит из тюрьмы!`);
+            } else {
+                this.log(`${player.name} остается в тюрьме.`);
+                this.endTurn();
+                return;
+            }
+        }
+
+        let newPos = player.pos + steps;
+        if (newPos >= 40) {
+            newPos -= 40;
+            player.money += 200;
+            this.log(`${player.name} прошел круг! Получено 200$.`);
+            playSound('win');
+        }
+        
+        player.pos = newPos;
+        this.moveTokenVisual(player.id, newPos);
+        this.handleCellAction(newPos);
+    }
+
+    handleCellAction(pos) {
+        const cell = this.boardState[pos];
+        const player = this.players[this.currentPlayerIdx];
+        
+        this.log(`${player.name} попал на: ${cell.name}`);
+
+        if (cell.type === 'gotojail') {
+            player.pos = 10; // Jail index
+            player.jailed = true;
+            this.moveTokenVisual(player.id, 10);
+            this.log(`${player.name} отправлен в тюрьму!`);
+            playSound('error');
+            this.endTurn();
+            return;
+        }
+
+        if (cell.type === 'tax') {
+            player.money -= cell.amount;
+            this.log(`Оплачен налог: ${cell.amount}$`);
+            playSound('error');
+        }
+
+        if (cell.type === 'chance') {
+            this.triggerChance(player);
+        }
+
+        if (['property', 'railroad', 'utility'].includes(cell.type)) {
+            if (!cell.owner) {
+                if (player.money >= cell.price) {
+                    document.getElementById('buy-btn').disabled = false;
+                    document.getElementById('auction-btn').disabled = false;
+                } else {
+                    this.log("Недостаточно средств для покупки.");
+                    document.getElementById('auction-btn').disabled = false; // Can still auction? Maybe not if no money, but simplified here
+                }
+            } else if (cell.owner !== player.id) {
+                this.payRent(player, cell);
+            } else {
+                // Own property
+                document.getElementById('build-btn').disabled = false;
+            }
+        }
+
+        this.checkBankruptcy(player);
+        this.updateUI();
+        
+        // Enable end turn if no forced actions, but usually we wait for user to click buy or end
+        if (cell.owner === undefined || cell.owner === player.id || cell.type === 'tax' || cell.type === 'chance') {
+             if(!document.getElementById('buy-btn').disabled || !document.getElementById('build-btn').disabled) {
+                 // Wait for user action
+             } else {
+                 document.getElementById('end-turn-btn').disabled = false;
+             }
+        } else {
+             document.getElementById('end-turn-btn').disabled = false;
+        }
+    }
+
+    triggerChance(player) {
+        const cards = [
+            { text: "Банковская ошибка в вашу пользу! +100$", effect: (p) => p.money += 100 },
+            { text: "Штраф за превышение скорости -50$", effect: (p) => p.money -= 50 },
+            { text: "Вы выиграли в лотерею! +50$", effect: (p) => p.money += 50 },
+            { text: "Оплата ремонта дорог -40$", effect: (p) => p.money -= 40 }
+        ];
+        const card = cards[Math.floor(Math.random() * cards.length)];
+        
+        const modal = document.getElementById('modal-content');
+        modal.innerHTML = `
+            <h2>ШАНС</h2>
+            <div class="card-display card-chance">${card.text}</div>
+            <button class="btn" onclick="game.closeModalAndContinue()">OK</button>
+        `;
+        document.getElementById('modal-overlay').style.display = 'flex';
+        
+        // Store temp effect
+        this.tempEffect = card.effect;
+    }
+
+    closeModalAndContinue() {
+        document.getElementById('modal-overlay').style.display = 'none';
+        if (this.tempEffect) {
+            this.tempEffect(this.players[this.currentPlayerIdx]);
+            this.log(`Карта шанса исполнена.`);
+            this.tempEffect = null;
+            this.updateUI();
+        }
+        document.getElementById('end-turn-btn').disabled = false;
+    }
+
+    payRent(player, cell) {
+        const owner = this.players[cell.owner];
+        let rent = cell.rent || 0;
+        
+        // Multiplier for houses/hotels (simplified)
+        if (cell.houses) rent *= (cell.houses === 5 ? 4 : cell.houses + 1); 
+        if (cell.type === 'railroad') {
+            const count = this.boardState.filter(c => c.type === 'railroad' && c.owner === owner.id).length;
+            rent = 25 * Math.pow(2, count - 1);
+        }
+
+        if (player.money >= rent) {
+            player.money -= rent;
+            owner.money += rent;
+            this.log(`${player.name} заплатил ${rent}$ аренды ${owner.name}.`);
+            playSound('buy'); // Reuse sound
+        } else {
+            this.log(`${player.name} не может заплатить аренду! Банкротство.`);
+            this.handleBankruptcy(player, owner);
+        }
+    }
+
+    buyProperty() {
+        const player = this.players[this.currentPlayerIdx];
+        const cell = this.boardState[player.pos];
+        
+        if (player.money >= cell.price) {
+            player.money -= cell.price;
+            cell.owner = player.id;
+            player.props.push(player.pos);
+            this.log(`${player.name} купил ${cell.name} за ${cell.price}$.`);
+            playSound('buy');
+            
+            // Visual update
+            const cellEl = document.getElementById(`cell-${player.pos}`);
+            cellEl.style.border = `3px solid ${player.color}`;
+            
+            document.getElementById('buy-btn').disabled = true;
+            document.getElementById('auction-btn').disabled = true;
+            document.getElementById('end-turn-btn').disabled = false;
+            this.updateUI();
+            this.saveGame();
+        }
+    }
+
+    startAuction() {
+        const cell = this.boardState[this.players[this.currentPlayerIdx].pos];
+        this.log(`Запущен аукцион на ${cell.name}. Стартовая цена: ${Math.floor(cell.price/2)}$`);
+        alert("Функция аукциона в разработке для этой демо-версии. Участок остается свободным.");
+        document.getElementById('end-turn-btn').disabled = false;
+    }
+
+    openTradeModal() {
+        // Simplified trade logic
+        const modal = document.getElementById('modal-content');
+        let options = '';
+        this.players.forEach((p, idx) => {
+            if (idx !== this.currentPlayerIdx) {
+                options += `<button class="btn" style="background:${p.color}" onclick="game.proposeTrade(${idx})">Торговать с ${p.name}</button>`;
+            }
+        });
+        modal.innerHTML = `<h2>Торговля</h2>${options}<button class="btn btn-danger" onclick="game.closeModal()">Отмена</button>`;
+        document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    proposeTrade(targetId) {
+        const target = this.players[targetId];
+        const amount = prompt(`Сколько вы хотите предложить ${target.name}?`, "100");
+        if (amount && !isNaN(amount)) {
+            // Simple AI accept logic
+            if (confirm(`${target.name} соглашается на сделку! Отдать ${amount}$?`)) {
+                this.players[this.currentPlayerIdx].money -= parseInt(amount);
+                target.money += parseInt(amount);
+                this.log(`Сделка совершена: ${this.players[this.currentPlayerIdx].name} отдал ${amount}$ ${target.name}.`);
+                this.closeModal();
+                this.updateUI();
+            }
+        }
+    }
+
+    openBuildModal() {
+        const player = this.players[this.currentPlayerIdx];
+        const cell = this.boardState[player.pos];
+        const cost = 50; // Simplified house cost
+        
+        if (player.money >= cost) {
+            if (confirm(`Построить дом на ${cell.name} за ${cost}$?`)) {
+                player.money -= cost;
+                cell.houses = (cell.houses || 0) + 1;
+                this.log(`${player.name} построил дом на ${cell.name}.`);
+                playSound('buy');
+                this.renderBuildings(cell, player.pos);
+                this.updateUI();
+                this.saveGame();
+            }
+        } else {
+            alert("Недостаточно денег!");
+        }
+    }
+
+    renderBuildings(cell, pos) {
+        const container = document.getElementById(`builds-${pos}`);
+        container.innerHTML = '';
+        if (cell.houses) {
+            for(let i=0; i<cell.houses; i++) {
+                if (i < 4) {
+                    const h = document.createElement('div');
+                    h.className = 'house-dot';
+                    container.appendChild(h);
+                } else {
+                    const hotel = document.createElement('div');
+                    hotel.className = 'hotel-dot';
+                    container.appendChild(hotel);
+                }
+            }
+        }
+    }
+
+    endTurn() {
+        document.getElementById('roll-btn').disabled = false;
+        document.getElementById('buy-btn').disabled = true;
+        document.getElementById('auction-btn').disabled = true;
+        document.getElementById('build-btn').disabled = true;
+        document.getElementById('trade-btn').disabled = true;
+        document.getElementById('end-turn-btn').disabled = true;
+        
+        this.currentPlayerIdx = (this.currentPlayerIdx + 1) % this.players.length;
+        // Skip bankrupt players
+        let loops = 0;
+        while (this.players[this.currentPlayerIdx].money < 0 && loops < 4) {
+            this.currentPlayerIdx = (this.currentPlayerIdx + 1) % this.players.length;
+            loops++;
+        }
+
+        const p = this.players[this.currentPlayerIdx];
+        document.getElementById('turn-indicator').innerText = `Ход: ${p.name}`;
+        document.getElementById('turn-indicator').style.color = p.color;
+        this.log(`--- Ход переходит к ${p.name} ---`);
+        this.saveGame();
+    }
+
+    checkBankruptcy(player) {
+        if (player.money < 0) {
+            this.handleBankruptcy(player, null);
+        }
+    }
+
+    handleBankruptcy(player, creditor) {
+        this.log(`💀 ${player.name} ОБАНКРОТИЛСЯ!`);
+        playSound('error');
+        // Return properties to bank
+        player.props.forEach(pos => {
+            const cell = this.boardState[pos];
+            cell.owner = undefined;
+            cell.houses = 0;
+            const cellEl = document.getElementById(`cell-${pos}`);
+            cellEl.style.border = '1px solid #bdc3c7';
+            document.getElementById(`builds-${pos}`).innerHTML = '';
+        });
+        player.props = [];
+        player.money = 0;
+        // Hide token?
+        document.getElementById(`token-${player.id}`).style.opacity = 0.2;
+        
+        if (this.players.filter(p => p.money > 0).length === 1) {
+            alert("ИГРА ОКОНЧЕНА! Победитель определен.");
+        }
+    }
+
+    updateUI() {
+        const statsDiv = document.getElementById('players-stats');
+        statsDiv.innerHTML = '';
+        this.players.forEach(p => {
+            const div = document.createElement('div');
+            div.style.borderLeft = `4px solid ${p.color}`;
+            div.style.padding = '5px';
+            div.style.background = p.id === this.currentPlayerIdx ? '#e8f6f3' : 'transparent';
+            div.innerHTML = `<strong>${p.name}</strong>: ${p.money}$ <br> <small>Участков: ${p.props.length}</small>`;
+            statsDiv.appendChild(div);
+        });
+
+        const logDiv = document.getElementById('game-log');
+        logDiv.scrollTop = logDiv.scrollHeight;
+        
+        // Update buttons state based on current cell
+        const cell = this.boardState[this.players[this.currentPlayerIdx].pos];
+        if (cell.owner === undefined && ['property','railroad','utility'].includes(cell.type)) {
+             if (this.players[this.currentPlayerIdx].money >= cell.price) {
+                 document.getElementById('buy-btn').disabled = false;
+                 document.getElementById('trade-btn').disabled = false;
+             }
+        }
+        if (cell.owner === this.players[this.currentPlayerIdx].id) {
+            document.getElementById('build-btn').disabled = false;
+            document.getElementById('trade-btn').disabled = false;
+        }
+        if (cell.owner !== undefined && cell.owner !== this.players[this.currentPlayerIdx].id) {
+             document.getElementById('trade-btn').disabled = false;
+        }
+    }
+
+    log(msg) {
+        const logDiv = document.getElementById('game-log');
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        logDiv.appendChild(entry);
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    saveGame() {
+        const data = {
+            players: this.players,
+            boardState: this.boardState,
+            currentPlayerIdx: this.currentPlayerIdx
+        };
+        localStorage.setItem('monopoly_save_v2', JSON.stringify(data));
+        // Silent save indicator could go here
+    }
+
+    loadGame() {
+        const saved = localStorage.getItem('monopoly_save_v2');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                this.players = data.players;
+                this.boardState = data.boardState;
+                this.currentPlayerIdx = data.currentPlayerIdx;
+                
+                // Restore visuals
+                this.players.forEach(p => {
+                    this.moveTokenVisual(p.id, p.pos);
+                    p.props.forEach(pos => {
+                        const cellEl = document.getElementById(`cell-${pos}`);
+                        if(cellEl) cellEl.style.border = `3px solid ${p.color}`;
+                        if(this.boardState[pos].houses) this.renderBuildings(this.boardState[pos], pos);
+                    });
+                });
+                
+                const p = this.players[this.currentPlayerIdx];
+                document.getElementById('turn-indicator').innerText = `Ход: ${p.name} (Загружено)`;
+                document.getElementById('turn-indicator').style.color = p.color;
+                this.log("Игра загружена.");
+                this.updateUI();
+            } catch (e) {
+                console.error("Save file corrupted", e);
+            }
+        }
+    }
+
+    resetGame() {
+        if(confirm("Вы уверены? Прогресс будет потерян.")) {
+            localStorage.removeItem('monopoly_save_v2');
+            location.reload();
+        }
+    }
+
+    closeModal() {
+        document.getElementById('modal-overlay').style.display = 'none';
+    }
+}
+
+// Start Game
+const game = new MonopolyGame();
+
+// Handle resize to reposition tokens
+window.addEventListener('resize', () => {
+    game.players.forEach(p => game.moveTokenVisual(p.id, p.pos));
+});
+
+// Auto-save functionality
+let autoSaveInterval;
+function startAutoSave() {
+    autoSaveInterval = setInterval(() => {
+        game.saveGame();
+        showSaveNotification();
+    }, 30000); // Save every 30 seconds
+}
+
+function showSaveNotification() {
+    const notification = document.getElementById('save-notification');
+    if (notification) {
+        notification.classList.add('show');
+        setTimeout(() => notification.classList.remove('show'), 2000);
+    }
+}
+
+// Load saved game on startup
+window.addEventListener('load', () => {
+    const savedGame = localStorage.getItem('monopolySave');
+    if (savedGame) {
+        try {
+            const saveData = JSON.parse(savedGame);
+            if (confirm('Найдена сохраненная игра. Загрузить её?')) {
+                game.loadGame(saveData);
+            }
+    } catch (e) {
+        console.error('Ошибка загрузки сохранения:', e);
+    }
+    }
+    startAutoSave();
+});
+
+// Sound effects
+const sounds = {
+    buy: new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='),
+    sell: new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='),
+    chance: new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='),
+    bankrupt: new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=')
+};
+
+function playSound(type) {
+    if (sounds[type]) {
+        sounds[type].currentTime = 0;
+        sounds[type].play().catch(e => console.log('Audio not supported'));
+    }
+}
+
+// Trade functionality
+function openTradeModal(currentPlayer) {
+    const otherPlayers = game.players.filter(p => p.id !== currentPlayer && !p.bankrupt);
+    if (otherPlayers.length === 0) {
+        alert('Нет доступных игроков для торговли!');
+        return;
+    }
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'trade-overlay';
+    document.body.appendChild(overlay);
+    
+    const modal = document.createElement('div');
+    modal.className = 'trade-modal';
+    modal.innerHTML = `
+        <h3>Торговля</h3>
+        <p>Выберите игрока для торговли:</p>
+        ${otherPlayers.map(p => `
+            <button onclick="selectTradePartner(${p.id})" style="background:${game.getPlayerColor(p.id)};color:white;border:none;padding:10px;margin:5px;width:100%;cursor:pointer;border-radius:5px;">
+                Игрок ${p.id + 1} (${Math.floor(p.money)}₽)
+            </button>
+        `).join('')}
+        <button onclick="closeTradeModal()" style="background:#95a5a6;color:white;border:none;padding:10px;margin:5px;width:100%;cursor:pointer;border-radius:5px;">Отмена</button>
+    `;
+    document.body.appendChild(modal);
+}
+
+function selectTradePartner(partnerId) {
+    alert(`Торговля с игроком ${partnerId + 1} будет реализована в следующей версии!`);
+    closeTradeModal();
+}
+
+function closeTradeModal() {
+    document.querySelectorAll('.trade-modal, .trade-overlay').forEach(el => el.remove());
+}
+
+// Auction functionality
+function startAuction(property, currentPlayer) {
+    const eligiblePlayers = game.players.filter(p => p.id !== currentPlayer && !p.bankrupt && p.money >= property.price);
+    if (eligiblePlayers.length === 0) {
+        return false;
+    }
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'trade-overlay';
+    document.body.appendChild(overlay);
+    
+    const modal = document.createElement('div');
+    modal.className = 'trade-modal';
+    modal.innerHTML = `
+        <div class="auction-panel">
+            <h3>Аукцион!</h3>
+            <p>${property.name}</p>
+            <p>Начальная цена: ${property.price}₽</p>
         </div>
-    </div>
+        <p>Игроки могут делать ставки:</p>
+        ${eligiblePlayers.map(p => `
+            <button onclick="placeBid(${p.id}, ${property.price})" style="background:${game.getPlayerColor(p.id)};color:white;border:none;padding:10px;margin:5px;width:100%;cursor:pointer;border-radius:5px;">
+                Игрок ${p.id + 1} - Ставка ${property.price}₽
+            </button>
+        `).join('')}
+        <button onclick="cancelAuction()" style="background:#95a5a6;color:white;border:none;padding:10px;margin:5px;width:100%;cursor:pointer;border-radius:5px;">Отменить аукцион</button>
+    `;
+    document.body.appendChild(modal);
+    
+    return true;
+}
 
-    <!-- Модальное окно для карточек -->
-    <div id="cardModal" class="modal">
-        <!-- Контент будет генерироваться через JavaScript -->
-    </div>
+function placeBid(playerId, amount) {
+    alert(`Ставка принята! (Демонстрация)`);
+}
 
-    <!-- Модальное окно подтверждения покупки -->
-    <div id="purchaseModal" class="modal">
-        <div class="modal-content purchase-modal-content">
-            <h3>Подтвердите действие</h3>
-            <div class="purchase-modal-body">
-                <div class="purchase-property-name" id="purchasePropertyName"></div>
-                <div class="purchase-property-price" id="purchasePropertyPrice"></div>
-                <div class="purchase-property-rent" id="purchasePropertyRent"></div>
-                <p class="purchase-question">Купить?</p>
-            </div>
-            <div class="purchase-modal-actions">
-                <button id="purchaseConfirmBtn" class="purchase-btn confirm" type="button">Купить</button>
-                <button id="purchaseCancelBtn" class="purchase-btn cancel" type="button">Отмена</button>
-            </div>
-        </div>
-    </div>
+function cancelAuction() {
+    document.querySelectorAll('.trade-modal, .trade-overlay').forEach(el => el.remove());
+}
 
-    <!-- Модальное окно полного журнала -->
-    <div id="journalModal" class="modal">
-        <div class="modal-content journal-modal-content">
-            <div class="journal-modal-header">
-                <h3>📜 Полный журнал партии</h3>
-                <button class="journal-close" onclick="closeJournalModal()">×</button>
-            </div>
-            <div class="journal-tools">
-                <select id="journalFilter" onchange="setJournalFilter(this.value)">
-                    <option value="all">Все события</option>
-                    <option value="moves">Ходы</option>
-                    <option value="property">Покупки и наборы</option>
-                    <option value="rent">Рента и платежи</option>
-                    <option value="cards">Карточки</option>
-                    <option value="result">Банкротство и победа</option>
-                </select>
-                <input
-                    id="journalSearch"
-                    type="text"
-                    placeholder="Поиск по журналу..."
-                    oninput="setJournalSearch(this.value)"
-                >
-                <button class="journal-clear" onclick="clearJournal()">Очистить</button>
-            </div>
-            <div id="journalModalList" class="journal-modal-list"></div>
-        </div>
-    </div>
+// Add save notification element to DOM
+const saveNotification = document.createElement('div');
+saveNotification.id = 'save-notification';
+saveNotification.className = 'save-notification';
+saveNotification.textContent = 'Игра сохранена';
+document.body.appendChild(saveNotification);
 
-    <!-- Tutorial Modal -->
-    <div id="tutorialModal" class="tutorial-modal">
-        <div class="tutorial-content">
-            <div class="tutorial-header">
-                <h2>🎓 Добро пожаловать в Монополию АТСТ!</h2>
-                <button class="tutorial-close" onclick="closeTutorial()">×</button>
-            </div>
-            <div class="tutorial-steps">
-                <div class="tutorial-step active" data-step="1">
-                    <h3>🎲 Как играть</h3>
-                    <p>Бросайте кубики и перемещайтесь по полю. Покупайте кабинеты и мастерские, чтобы получать ренту с других игроков!</p>
-                    <div class="tutorial-image">🎲 → 🏫 → 💰</div>
-                </div>
-                <div class="tutorial-step" data-step="2">
-                    <h3>🏢 Недвижимость</h3>
-                    <p>Покупайте свойства одного цвета, чтобы строить дома и отели. Чем больше построек, тем выше рента!</p>
-                    <div class="tutorial-image">🏠 🏠 → 🏨</div>
-                </div>
-                <div class="tutorial-step" data-step="3">
-                    <h3>🎴 Карточки</h3>
-                    <p>Попадайте на клетки "Шанс", "Стипендия" и "Сессия" для случайных событий - как хороших, так и не очень!</p>
-                    <div class="tutorial-image">🎲 📝 💰</div>
-                </div>
-                <div class="tutorial-step" data-step="4">
-                    <h3>🎯 Цель игры</h3>
-                    <p>Разорите всех соперников и останьтесь последним студентом, получившим диплом!</p>
-                    <div class="tutorial-image">🏆 🎓</div>
-                </div>
-            </div>
-            <div class="tutorial-controls">
-                <button class="btn-tutorial-prev" onclick="prevTutorialStep()">← Назад</button>
-                <button class="btn-tutorial-next" onclick="nextTutorialStep()">Вперёд →</button>
-                <button class="btn-tutorial-skip" onclick="closeTutorial()">Играть!</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast уведомления -->
-    <div id="toastContainer" class="toast-container"></div>
-
-    <!-- Эффект конфетти -->
-    <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
-
-    <!-- Кнопка помощи -->
-    <button class="help-button" onclick="showHelp()" title="Помощь">❓</button>
-
-    <script src="game.js"></script>
+</script>
 </body>
 </html>

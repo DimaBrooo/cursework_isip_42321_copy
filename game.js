@@ -1350,6 +1350,13 @@ function getPlayerColor(playerId) {
     return colors[(playerId - 1) % colors.length];
 }
 
+// Add method to MonopolyGame class for accessing from inline handlers
+if (typeof MonopolyGame !== 'undefined' && MonopolyGame.prototype) {
+    MonopolyGame.prototype.getPlayerColor = function(playerId) {
+        return getPlayerColor(playerId);
+    };
+}
+
 // ===== Показ карточки (улучшенная версия) =====
 function showCard(title, text) {
     const modal = document.getElementById('cardModal');
