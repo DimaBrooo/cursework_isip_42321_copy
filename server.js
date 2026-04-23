@@ -21,6 +21,11 @@ app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 app.use(express.static(path.join(__dirname)));
 
+// Перенаправление с корня сайта на menu.html
+app.get("/", (_req, res) => {
+    res.redirect("/menu.html");
+});
+
 function randomRoomCode() {
     return Math.random().toString(36).slice(2, 7).toUpperCase();
 }
