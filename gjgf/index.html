@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Монополия АТСТ - Путь к диплому</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="monopoly-container">
+        <!-- Логотип техникума -->
+        <div class="college-branding">
+            <div class="college-logo">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23667eea' width='100' height='100' rx='10'/%3E%3Ctext fill='white' font-size='60' x='50' y='65' text-anchor='middle'%3E🎓%3C/text%3E%3C/svg%3E" alt="АТСТ">
+            </div>
+            <div class="college-info">
+                <h1>АТСТ</h1>
+                <p>Ангарский техникум строительных технологий</p>
+            </div>
+        </div>
+
+        <!-- Шапка с игроками -->
+        <div class="game-header">
+            <div class="players-area" id="playersArea">
+                <!-- Игроки будут здесь -->
+            </div>
+            <div class="game-controls">
+                <a class="btn-menu" href="menu.html">← Главное меню</a>
+                <button class="btn-roll" onclick="rollDice()">
+                    <span class="dice-icon">🎲</span>
+                    Бросить кубики
+                </button>
+                <button class="btn-end" onclick="endTurn()">
+                    Завершить ход
+                </button>
+                <button class="btn-stats" onclick="showGameStats()">
+                    📊 Статистика
+                </button>
+                <button class="btn-log" onclick="openJournalModal()">
+                    📜 Журнал
+                </button>
+                <button class="btn-save" onclick="saveGame()">
+                    💾 Сохранить
+                </button>
+            </div>
+        </div>
+
+        <!-- Игровое поле -->
+        <div class="board-wrapper">
+            <table class="monopoly-board">
+                <!-- Верхний ряд -->
+                <tr>
+                    <td class="corner-cell" id="space-20">
+                        <div class="corner-content">
+                            <div class="corner-icon">👔</div>
+                            <div>К директору!</div>
+                        </div>
+                    </td>
+                    <td class="property-cell blue-group" id="space-21" data-price="300" data-rent="44" data-group="blue">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Конференц-зал</div>
+                        <div class="property-price">300₽</div>
+                        <div class="property-owner" id="owner-21"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="property-cell blue-group" id="space-22" data-price="300" data-rent="46" data-group="blue">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Лингафонный кабинет</div>
+                        <div class="property-price">300₽</div>
+                        <div class="property-owner" id="owner-22"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="property-cell blue-group" id="space-23" data-price="320" data-rent="48" data-group="blue">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Лаборатория электротехники</div>
+                        <div class="property-price">320₽</div>
+                        <div class="property-owner" id="owner-23"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="property-cell blue-group" id="space-24" data-price="320" data-rent="50" data-group="blue">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Лаборатория физики</div>
+                        <div class="property-price">320₽</div>
+                        <div class="property-owner" id="owner-24"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="property-cell blue-group" id="space-25" data-price="350" data-rent="52" data-group="blue">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Столярная мастерская</div>
+                        <div class="property-price">350₽</div>
+                        <div class="property-owner" id="owner-25"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="chance-cell" id="space-26">
+                        <div class="chance-card-visual">
+                            <div class="chance-card-inner">
+                                <div class="chance-card-front">
+                                    <div class="chance-title">ШАНС</div>
+                                    <div class="chance-icon">?</div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="property-cell blue-group" id="space-27" data-price="350" data-rent="55" data-group="blue">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Читальный зал</div>
+                        <div class="property-price">350₽</div>
+                        <div class="property-owner" id="owner-27"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="property-cell blue-group" id="space-28" data-price="400" data-rent="60" data-group="blue">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Библиотека</div>
+                        <div class="property-price">400₽</div>
+                        <div class="property-owner" id="owner-28"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="corner-cell start-cell" id="space-0">
+                        <div class="corner-icon">🎓</div>
+                        <div class="corner-text">ГЛАВНЫЙ ВХОД<br>АТСТ</div>
+                        <div class="corner-subtext">+200₽</div>
+                        <div class="college-badge">АТСТ</div>
+                    </td>
+                </tr>
+
+                <!-- Левая колонка и центр -->
+                <tr>
+                    <td class="property-cell yellow-group" id="space-19" data-price="280" data-rent="40" data-group="yellow">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Актовый зал</div>
+                        <div class="property-price">280₽</div>
+                        <div class="property-owner" id="owner-19"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td colspan="8" rowspan="8" class="board-center">
+                        <div class="center-content">
+                            <div class="center-top-info">
+                                <div class="info-chip">Проход круга: +200₽</div>
+                                <div class="info-chip">3 дубля: в кабинет к завучу</div>
+                                <div class="info-chip">Цель: остаться последним в игре</div>
+                            </div>
+
+                            <div class="college-emblem">
+                                <div class="emblem-circle">
+                                    <div class="emblem-text">АТСТ</div>
+                                    <div class="emblem-year">1954</div>
+                                </div>
+                            </div>
+                            
+                            <div class="dice-container" id="diceContainer">
+                                <div class="dice-3d" id="dice1">
+                                    <div class="dice-face dice-face-1">⚀</div>
+                                    <div class="dice-face dice-face-2">⚁</div>
+                                    <div class="dice-face dice-face-3">⚂</div>
+                                    <div class="dice-face dice-face-4">⚃</div>
+                                    <div class="dice-face dice-face-5">⚄</div>
+                                    <div class="dice-face dice-face-6">⚅</div>
+                                </div>
+                                <div class="dice-3d" id="dice2">
+                                    <div class="dice-face dice-face-1">⚀</div>
+                                    <div class="dice-face dice-face-2">⚁</div>
+                                    <div class="dice-face dice-face-3">⚂</div>
+                                    <div class="dice-face dice-face-4">⚃</div>
+                                    <div class="dice-face dice-face-5">⚄</div>
+                                    <div class="dice-face dice-face-6">⚅</div>
+                                </div>
+                            </div>
+                            
+                            <div class="game-message" id="gameMessage">
+                                Добро пожаловать в техникум АТСТ!
+                            </div>
+                            <div class="turn-indicator" id="turnIndicator">
+                                Ожидание начала игры...
+                            </div>
+
+                            <div class="center-bottom-rules">
+                                <div class="rule-card">Покупайте свойства и собирайте ренту</div>
+                                <div class="rule-card">Карточки могут как помочь, так и наказать</div>
+                                <div class="rule-card">Следите за балансом и риском банкротства</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="property-cell red-group" id="space-1" data-price="60" data-rent="10" data-group="red">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Каб. Экономики</div>
+                        <div class="property-price">60₽</div>
+                        <div class="property-owner" id="owner-1"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="property-cell yellow-group" id="space-18" data-price="260" data-rent="38" data-group="yellow">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Студенческое кафе</div>
+                        <div class="property-price">260₽</div>
+                        <div class="property-owner" id="owner-18"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="property-cell red-group" id="space-2" data-price="60" data-rent="12" data-group="red">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Каб. Английского</div>
+                        <div class="property-price">60₽</div>
+                        <div class="property-owner" id="owner-2"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="scholarship-cell" id="space-17">
+                        <div class="special-name">
+                            <div class="special-icon">💰</div>
+                            <div>Стипендия</div>
+                        </div>
+                    </td>
+                    <td class="tax-cell" id="space-3">
+                        <div class="tax-name">Пожертвование<br>техникуму</div>
+                        <div class="tax-amount">-200₽</div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="property-cell yellow-group" id="space-16" data-price="240" data-rent="36" data-group="yellow">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Бассейн</div>
+                        <div class="property-price">240₽</div>
+                        <div class="property-owner" id="owner-16"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="corner-cell bonus-cell" id="space-4">
+                        <div class="corner-content">
+                            <div class="corner-icon">🔨</div>
+                            <div>Практика</div>
+                            <div class="bonus-amount">+200₽</div>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="property-cell purple-group" id="space-15" data-price="220" data-rent="32" data-group="purple">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Тренажерный зал</div>
+                        <div class="property-price">220₽</div>
+                        <div class="property-owner" id="owner-15"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="property-cell orange-group" id="space-39" data-price="180" data-rent="26" data-group="orange">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Каб. ОБЖ</div>
+                        <div class="property-price">180₽</div>
+                        <div class="property-owner" id="owner-39"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="property-cell purple-group" id="space-14" data-price="220" data-rent="34" data-group="purple">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Спортивный зал</div>
+                        <div class="property-price">220₽</div>
+                        <div class="property-owner" id="owner-14"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="chance-cell" id="space-38">
+                        <div class="chance-card-visual">
+                            <div class="chance-card-inner">
+                                <div class="chance-card-front">
+                                    <div class="chance-title">ШАНС</div>
+                                    <div class="chance-icon">?</div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="property-cell green-group" id="space-13" data-price="200" data-rent="30" data-group="green">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Сварочная мастерская</div>
+                        <div class="property-price">200₽</div>
+                        <div class="property-owner" id="owner-13"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="property-cell green-group" id="space-37" data-price="200" data-rent="30" data-group="green">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Лаборатория химии</div>
+                        <div class="property-price">200₽</div>
+                        <div class="property-owner" id="owner-37"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="property-cell orange-group" id="space-12" data-price="180" data-rent="28" data-group="orange">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Каб. сметного дела</div>
+                        <div class="property-price">180₽</div>
+                        <div class="property-owner" id="owner-12"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="corner-cell jail-cell" id="space-36">
+                        <div class="corner-content">
+                            <div class="corner-icon">📚</div>
+                            <div class="jail-title">В кабинет</div>
+                            <div class="jail-title">к завучу</div>
+                            <div class="jail-subtitle">Пропустите ход</div>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Нижний ряд -->
+                <tr>
+                    <td class="property-cell green-group" id="space-11" data-price="180" data-rent="26" data-group="green">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Компьютерный класс</div>
+                        <div class="property-price">180₽</div>
+                        <div class="property-owner" id="owner-11"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="property-cell green-group" id="space-10" data-price="160" data-rent="24" data-group="green">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Каб. архитектуры</div>
+                        <div class="property-price">160₽</div>
+                        <div class="property-owner" id="owner-10"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="session-cell" id="space-9">
+                        <div class="special-name">
+                            <div class="special-icon">📝</div>
+                            <div>Сессия</div>
+                        </div>
+                    </td>
+                    <td class="property-cell orange-group" id="space-8" data-price="140" data-rent="22" data-group="orange">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Аудитория экономики</div>
+                        <div class="property-price">140₽</div>
+                        <div class="property-owner" id="owner-8"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="property-cell purple-group" id="space-7" data-price="140" data-rent="20" data-group="purple">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Комната отдыха</div>
+                        <div class="property-price">140₽</div>
+                        <div class="property-owner" id="owner-7"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="property-cell yellow-group" id="space-6" data-price="120" data-rent="18" data-group="yellow">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Кредисманский<br>проспект</div>
+                        <div class="property-price">120₽</div>
+                        <div class="property-owner" id="owner-6"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="property-cell red-group" id="space-5" data-price="100" data-rent="16" data-group="red">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Каб. черчения</div>
+                        <div class="property-price">100₽</div>
+                        <div class="property-owner" id="owner-5"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                    <td class="tax-cell" id="space-35">
+                        <div class="tax-name">Взнос за<br>сессию</div>
+                        <div class="tax-amount">-100₽</div>
+                    </td>
+                    <td class="chance-cell" id="space-33">
+                        <div class="chance-card-visual">
+                            <div class="chance-card-inner">
+                                <div class="chance-card-front">
+                                    <div class="chance-title">ШАНС</div>
+                                    <div class="chance-icon">?</div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="property-cell red-group" id="space-34" data-price="110" data-rent="18" data-group="red">
+                        <div class="property-color-bar"></div>
+                        <div class="property-name">Каб. Информатики</div>
+                        <div class="property-price">110₽</div>
+                        <div class="property-owner" id="owner-34"></div>
+                        <div class="property-buildings"></div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="board-decks">
+            <div class="deck chance-deck">
+                <div class="deck-title">ШАНС</div>
+            </div>
+            <div class="deck scholarship-deck">
+                <div class="deck-title">СТИПЕНДИЯ</div>
+            </div>
+            <div class="deck session-deck">
+                <div class="deck-title">СЕССИЯ</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Экран настройки игры -->
+    <div id="setupScreen" class="setup-screen">
+        <div class="setup-panel">
+            <div class="setup-header">
+                <div class="setup-logo">🎓</div>
+                <h1>Монополия АТСТ</h1>
+                <h2>Путь к диплому</h2>
+            </div>
+            
+            <div class="form-group">
+                <label for="playerCount">Количество игроков (1-8):</label>
+                <select id="playerCount" onchange="updatePlayerSetup()">
+                    <option value="1">1 игрок</option>
+                    <option value="2" selected>2 игрока</option>
+                    <option value="3">3 игрока</option>
+                    <option value="4">4 игрока</option>
+                    <option value="5">5 игроков</option>
+                    <option value="6">6 игроков</option>
+                    <option value="7">7 игроков</option>
+                    <option value="8">8 игроков</option>
+                </select>
+            </div>
+
+            <div id="playersSetup">
+                <!-- Динамически генерируемые поля игроков -->
+            </div>
+
+            <button onclick="startGame()" class="btn-start">Начать игру</button>
+            <button onclick="loadGame()" class="btn-load">📂 Загрузить игру</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно для карточек -->
+    <div id="cardModal" class="modal">
+        <!-- Контент будет генерироваться через JavaScript -->
+    </div>
+
+    <!-- Модальное окно подтверждения покупки -->
+    <div id="purchaseModal" class="modal">
+        <div class="modal-content purchase-modal-content">
+            <h3>Подтвердите действие</h3>
+            <div class="purchase-modal-body">
+                <div class="purchase-property-name" id="purchasePropertyName"></div>
+                <div class="purchase-property-price" id="purchasePropertyPrice"></div>
+                <div class="purchase-property-rent" id="purchasePropertyRent"></div>
+                <p class="purchase-question">Купить?</p>
+            </div>
+            <div class="purchase-modal-actions">
+                <button id="purchaseConfirmBtn" class="purchase-btn confirm" type="button">Купить</button>
+                <button id="purchaseCancelBtn" class="purchase-btn cancel" type="button">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно полного журнала -->
+    <div id="journalModal" class="modal">
+        <div class="modal-content journal-modal-content">
+            <div class="journal-modal-header">
+                <h3>📜 Полный журнал партии</h3>
+                <button class="journal-close" onclick="closeJournalModal()">×</button>
+            </div>
+            <div class="journal-tools">
+                <select id="journalFilter" onchange="setJournalFilter(this.value)">
+                    <option value="all">Все события</option>
+                    <option value="moves">Ходы</option>
+                    <option value="property">Покупки и наборы</option>
+                    <option value="rent">Рента и платежи</option>
+                    <option value="cards">Карточки</option>
+                    <option value="result">Банкротство и победа</option>
+                </select>
+                <input
+                    id="journalSearch"
+                    type="text"
+                    placeholder="Поиск по журналу..."
+                    oninput="setJournalSearch(this.value)"
+                >
+                <button class="journal-clear" onclick="clearJournal()">Очистить</button>
+            </div>
+            <div id="journalModalList" class="journal-modal-list"></div>
+        </div>
+    </div>
+
+    <!-- Tutorial Modal -->
+    <div id="tutorialModal" class="tutorial-modal">
+        <div class="tutorial-content">
+            <div class="tutorial-header">
+                <h2>🎓 Добро пожаловать в Монополию АТСТ!</h2>
+                <button class="tutorial-close" onclick="closeTutorial()">×</button>
+            </div>
+            <div class="tutorial-steps">
+                <div class="tutorial-step active" data-step="1">
+                    <h3>🎲 Как играть</h3>
+                    <p>Бросайте кубики и перемещайтесь по полю. Покупайте кабинеты и мастерские, чтобы получать ренту с других игроков!</p>
+                    <div class="tutorial-image">🎲 → 🏫 → 💰</div>
+                </div>
+                <div class="tutorial-step" data-step="2">
+                    <h3>🏢 Недвижимость</h3>
+                    <p>Покупайте свойства одного цвета, чтобы строить дома и отели. Чем больше построек, тем выше рента!</p>
+                    <div class="tutorial-image">🏠 🏠 → 🏨</div>
+                </div>
+                <div class="tutorial-step" data-step="3">
+                    <h3>🎴 Карточки</h3>
+                    <p>Попадайте на клетки "Шанс", "Стипендия" и "Сессия" для случайных событий - как хороших, так и не очень!</p>
+                    <div class="tutorial-image">🎲 📝 💰</div>
+                </div>
+                <div class="tutorial-step" data-step="4">
+                    <h3>🎯 Цель игры</h3>
+                    <p>Разорите всех соперников и останьтесь последним студентом, получившим диплом!</p>
+                    <div class="tutorial-image">🏆 🎓</div>
+                </div>
+            </div>
+            <div class="tutorial-controls">
+                <button class="btn-tutorial-prev" onclick="prevTutorialStep()">← Назад</button>
+                <button class="btn-tutorial-next" onclick="nextTutorialStep()">Вперёд →</button>
+                <button class="btn-tutorial-skip" onclick="closeTutorial()">Играть!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast уведомления -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Эффект конфетти -->
+    <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+
+    <!-- Кнопка помощи -->
+    <button class="help-button" onclick="showHelp()" title="Помощь">❓</button>
+
+    <script src="game.js"></script>
+</body>
+</html>

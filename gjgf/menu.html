@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Монополия АТСТ - Главное меню</title>
+    <link rel="stylesheet" href="menu.css">
+</head>
+<body>
+    <main class="menu-page">
+        <section class="hero">
+            <h1>Монополия АТСТ</h1>
+            <p class="subtitle">Залетай в игру и прокачай свой путь к диплому в стиле АТСТ!</p>
+        </section>
+
+        <section class="menu-actions">
+            <a class="menu-btn primary" href="index.html">Новая игра</a>
+            <button id="loadGameBtn" class="menu-btn secondary" type="button">Загрузить сохранение</button>
+        </section>
+
+        <section class="menu-info">
+            <article>
+                <h2>О игре</h2>
+                <p>Привет! Добро пожаловать в веб-приложение «Монополия» — это часть проекта студента Ангарского Техникума Строительных Технологий, Кудрявцева Дмитрия. Игра вдохновлена классической Монополией, но здесь все завязано на атмосфере техникума: кабинеты, корпуса, сессия и студенческий движ.</p>
+            </article>
+            <article>
+                <h2>Как играть</h2>
+                <ul>
+                    <li>Покупай кабинеты преподавателей, а потом продавай и усиливай свою позицию.</li>
+                    <li>Забирай в собственность столовую, спортзал и учебные корпуса — это ключ к стабильному доходу.</li>
+                    <li>За сделки и грамотные ходы получаешь валюту, которая помогает развиваться дальше.</li>
+                    <li>Скупай разные объекты на поле и зарабатывай на этом больше, чем соперники.</li>
+                    <li>Следи за балансом: кто круче ведет экономику, тот и забирает победу.</li>
+                </ul>
+            </article>
+            <article>
+                <h2>Атмосфера</h2>
+                <p>Тут не скучная теория, а полный студенческий экшен: кидай кубики, лови шансы, собирай активы и покажи, кто на этом поле настоящий финансовый профи!</p>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        document.getElementById('loadGameBtn').addEventListener('click', () => {
+            sessionStorage.setItem('monopolyATST_autoload', '1');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
