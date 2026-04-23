@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Монополия АТСТ - Главное меню</title>
+    <link rel="stylesheet" href="menu.css">
+</head>
+<body>
+    <main class="menu-page">
+        <section class="hero">
+            <h1>Монополия АТСТ</h1>
+            <p class="subtitle">Залетай в игру и прокачай свой путь к диплому в стиле АТСТ!</p>
+        </section>
+
+        <section class="menu-actions">
+            <a class="menu-btn primary" href="index.html">Новая игра</a>
+            <button id="loadGameBtn" class="menu-btn secondary" type="button">Загрузить сохранение</button>
+        </section>
+
+        <section class="network-panel">
+            <h2>Локальная сеть</h2>
+            <p class="network-subtitle">Создай комнату или войди по коду, чтобы играть с друзьями по Wi-Fi.</p>
+            <div class="network-form">
+                <input id="networkPlayerName" type="text" placeholder="Твое имя (например, Игрок 1)">
+                <select id="networkPlayerToken">
+                    <option value="🎓">🎓 Выпускник</option>
+                    <option value="📚">📚 Книга</option>
+                    <option value="💻">💻 Ноутбук</option>
+                    <option value="📝">📝 Зачетка</option>
+                    <option value="🧮">🧮 Калькулятор</option>
+                    <option value="✏️">✏️ Карандаш</option>
+                </select>
+                <input id="joinRoomCode" type="text" maxlength="5" placeholder="Код комнаты (например, A1B2C)">
+                <button id="createRoomBtn" class="menu-btn secondary" type="button">Создать комнату</button>
+                <button id="joinRoomBtn" class="menu-btn primary" type="button">Войти в комнату</button>
+            </div>
+            <div id="networkStatus" class="network-status"></div>
+        </section>
+
+        <section class="menu-info">
+            <article>
+                <h2>О игре</h2>
+                <p>Привет! Добро пожаловать в веб-приложение «Монополия» — это часть проекта студента Ангарского Техникума Строительных Технологий, Кудрявцева Дмитрия. Игра вдохновлена классической Монополией, но здесь все завязано на атмосфере техникума: кабинеты, корпуса, сессия и студенческий движ.</p>
+            </article>
+            <article>
+                <h2>Как играть</h2>
+                <ul>
+                    <li>Покупай кабинеты преподавателей, а потом продавай и усиливай свою позицию.</li>
+                    <li>Забирай в собственность столовую, спортзал и учебные корпуса — это ключ к стабильному доходу.</li>
+                    <li>За сделки и грамотные ходы получаешь валюту, которая помогает развиваться дальше.</li>
+                    <li>Скупай разные объекты на поле и зарабатывай на этом больше, чем соперники.</li>
+                    <li>Следи за балансом: кто круче ведет экономику, тот и забирает победу.</li>
+                </ul>
+            </article>
+            <article>
+                <h2>Атмосфера</h2>
+                <p>Тут не скучная теория, а полный студенческий экшен: кидай кубики, лови шансы, собирай активы и покажи, кто на этом поле настоящий финансовый профи!</p>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        function setNetworkStatus(text, isError = false) {
+            const statusEl = document.getElementById('networkStatus');
+            statusEl.textContent = text;
+            statusEl.className = `network-status ${isError ? 'error' : 'ok'}`;
+        }
+
+        function getNetworkFormData() {
+            const name = document.getElementById('networkPlayerName').value.trim();
+            const token = document.getElementById('networkPlayerToken').value;
+            const code = document.getElementById('joinRoomCode').value.trim().toUpperCase();
+            return { name, token, code };
+        }
+
+        function storeNetworkSession({ roomCode, playerName, playerToken, playerId, isHost }) {
+            sessionStorage.setItem('monopolyATST_roomCode', roomCode);
+            sessionStorage.setItem('monopolyATST_playerName', playerName);
+            sessionStorage.setItem('monopolyATST_playerToken', playerToken);
+            sessionStorage.setItem('monopolyATST_playerId', String(playerId || ''));
+            sessionStorage.setItem('monopolyATST_isHost', isHost ? '1' : '0');
+        }
+
+        document.getElementById('loadGameBtn').addEventListener('click', () => {
+            sessionStorage.setItem('monopolyATST_autoload', '1');
+            window.location.href = 'index.html';
+        });
+
+        document.getElementById('createRoomBtn').addEventListener('click', async () => {
+            const { name, token } = getNetworkFormData();
+            if (!name) {
+                setNetworkStatus('Введите имя игрока', true);
+                return;
+            }
+
+            setNetworkStatus('Создаем комнату...');
+            try {
+                const response = await fetch('/api/rooms', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hostName: name, hostToken: token })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Ошибка создания комнаты');
+
+                storeNetworkSession({
+                    roomCode: data.code,
+                    playerName: name,
+                    playerToken: token,
+                    playerId: data.playerId,
+                    isHost: true
+                });
+                setNetworkStatus(`Комната ${data.code} создана. Переходим в игру...`);
+                setTimeout(() => { window.location.href = 'index.html'; }, 500);
+            } catch (error) {
+                setNetworkStatus(error.message, true);
+            }
+        });
+
+        document.getElementById('joinRoomBtn').addEventListener('click', async () => {
+            const { name, token, code } = getNetworkFormData();
+            if (!name) {
+                setNetworkStatus('Введите имя игрока', true);
+                return;
+            }
+            if (!code || code.length < 5) {
+                setNetworkStatus('Введите корректный код комнаты', true);
+                return;
+            }
+
+            setNetworkStatus(`Входим в комнату ${code}...`);
+            try {
+                const response = await fetch(`/api/rooms/${code}/join`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, token })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Ошибка входа в комнату');
+
+                storeNetworkSession({
+                    roomCode: code,
+                    playerName: name,
+                    playerToken: token,
+                    playerId: data.playerId,
+                    isHost: false
+                });
+                setNetworkStatus(`Подключено к комнате ${code}. Переходим в игру...`);
+                setTimeout(() => { window.location.href = 'index.html'; }, 500);
+            } catch (error) {
+                setNetworkStatus(error.message, true);
+            }
+        });
+    </script>
+</body>
+</html>
